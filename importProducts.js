@@ -1,6 +1,22 @@
-const YAML = require('yamljs'); // use a tool to import yaml files
-const capterraToImport = YAML.load("./feed-products/capterra.yaml"); // import the yaml file into a json object.
-const softwareAdviceToImport = require('./feed-products/softwareAdvice.json');
+const origin = process.argv[2];
+const route = process.argv[3];
+const sessionsProducts = [];
+
+// as it stems from the predicate of the exercise,
+// the cli should request one type of import and one route
+switch (origin) {
+  case 'capterra':
+    pushCapterra(sessionsProducts);
+    break;
+  case 'softwareAdvice':
+    pushSA(sessionsProducts);
+    break;
+  default:
+    console.log('\x1b[31m%s\x1b[0m', `Unknown origin ${origin}`); // red comment
+
+}
+
+
 // in order to test what happens with an already existing product, I created this object:
 const existingProducts = {
   Freshdesk: {
@@ -12,35 +28,28 @@ const existingProducts = {
     "name": "Freshdesk"
   }
 };
-// Normalize data, as the two different sources have different formats (title ≈ name, tags ≈ categories, twitter ≈ @twitter)
-function normalizeSoftwareAdvice (product){
-  const normalizedProduct = {
-    name: product.title.replace(/(^|\s)\S/g, l => l.toUpperCase()),
-    categories: product.categories || '?',
-    twitter: (product.twitter||'').substr(1)
-  }
-  return normalizedProduct;
-}
-function normalizeCapterra (product){
-  const normalizedProduct = {
-    name: product.name.replace(/(^|\s)\S/g, l => l.toUpperCase()),
-    categories: product.tags || '',
-    twitter: (product.twitter||'')
-  }
-  return normalizedProduct;
+
+function pushCapterra(arr) {
+  const capterraController = require('./app/capterra');
+  const products = capterraController.getAllNormalized(route)
+  arr.push(...products);
+  return arr;
 }
 
-const normalizedSA = softwareAdviceToImport.products.map(normalizeSoftwareAdvice);
-const normalizedCap= capterraToImport.map(normalizeCapterra)
+function pushSA(arr) {
+  const sAController = require('./app/softwareAdvice');
+  const products = sAController.getAllNormalized(route)
+  arr.push(...products);
+  return arr;
+}
 
 // loop each entry and execute the installation
-const sessionsProducts = normalizedCap.concat(normalizedSA);
 importProducts(sessionsProducts)
-.then(()=>{
-  // just to see the final output in the console
-  console.log('\x1b[36m%s\x1b[0m', `existingProducts ${JSON.stringify (existingProducts,1,1)}`); // cyan comment
+  .then(() => {
+    // just to see the final output in the console
+    console.log('\x1b[36m%s\x1b[0m', `existingProducts ${JSON.stringify(existingProducts, 1, 1)}`); // cyan comment
 
-});
+  });
 
 function productExists(product, products = existingProducts) {
   return !!products[product.name]; // or any kind of unique id
@@ -50,7 +59,7 @@ async function importProducts(products) {
   for (product of products) {
     if (!productExists(product)) {
       await addProduct(product)
-      console.log('\x1b[32m%s\x1b[0m', `Importing: Name: "${product.name}"${product.categories? '; Categories: ' + product.categories : ''}${product.twitter ? '; Twitter: @' + product.twitter : '' }`); // green comment
+      console.log('\x1b[32m%s\x1b[0m', `Importing: Name: "${product.name}"${product.categories ? '; Categories: ' + product.categories : ''}${product.twitter ? '; Twitter: @' + product.twitter : ''}`); // green comment
     } else {
       console.log('\x1b[33m%s\x1b[0m', `Skipping: Name: "${product.name}"`); // yellow comment
     }
