@@ -1,3 +1,27 @@
+## To run this app:
+- You need Node.js and Git installed
+- Clone this repository
+- Run `npm install` in the directory created on clonation
+
+Now, from that directory, we can run commands to import the files to a supposed DB.
+This app currently accepts two different commands that are intended to import from two different sources, and here are the commands accepted:
+
+- `node importProducts.js softwareAdvice feed-products/softwareAdvice.json`
+- `node importProducts.js capterra feed-products/capterra.yaml`
+
+'node importProducts.js' executes the app residing in that file. If I had more time I would implement my own CLI with a simpler command.
+
+The first argument is the type of import, that can be one of the two options: ['capterra', 'softwareAdvice']. The second argument is the location of the file.
+
+I added a brief sample of tests in a npm script. In order to run them you need to execute `npm run test` in your terminal.
+
+If I had more time and the project would be greater, I would have created git branches to develop, branches for features, etc.
+
+This is an exercise and you can find below the predicate:
+
+
+
+
 ## SaaS Products Import
 
 We update our inventory of SaaS products from several sources.  Each source provides its content to us in a different format.  Write a command line script to import the products.
